@@ -26,7 +26,8 @@ func TestIntegration(t *testing.T) {
 			httpMethod         string
 			endpoint           string
 			searchTerm         string
-			loc                location
+			lat                string
+			lon                string
 			expected           []item
 			expectedStatusCode int
 		}{
@@ -36,7 +37,8 @@ func TestIntegration(t *testing.T) {
 				httpMethod:         "POST",
 				endpoint:           "/search",
 				searchTerm:         "camera",
-				loc:                location{0, 0},
+				lat:                "0",
+				lon:                "0",
 				expected:           []item{},
 				expectedStatusCode: http.StatusMethodNotAllowed,
 			},
@@ -46,7 +48,8 @@ func TestIntegration(t *testing.T) {
 				httpMethod:         "GET",
 				endpoint:           "/differentEndpoint",
 				searchTerm:         "camera",
-				loc:                location{0, 0},
+				lat:                "0",
+				lon:                "0",
 				expected:           []item{},
 				expectedStatusCode: http.StatusNotFound,
 			},
@@ -56,7 +59,8 @@ func TestIntegration(t *testing.T) {
 				httpMethod:         "GET",
 				endpoint:           "/search",
 				searchTerm:         "",
-				loc:                location{51, 0},
+				lat:                "51",
+				lon:                "0",
 				expected:           []item{},
 				expectedStatusCode: http.StatusBadRequest,
 			},
@@ -66,7 +70,8 @@ func TestIntegration(t *testing.T) {
 				httpMethod:         "GET",
 				endpoint:           "/search",
 				searchTerm:         "camera",
-				loc:                location{51, 0},
+				lat:                "51",
+				lon:                "0",
 				expected:           []item{{"camera", location{51, 0}, "london/camera", []string{}}},
 				expectedStatusCode: http.StatusOK,
 			},
@@ -76,7 +81,8 @@ func TestIntegration(t *testing.T) {
 				httpMethod:         "GET",
 				endpoint:           "/search",
 				searchTerm:         "cameras",
-				loc:                location{51, 0},
+				lat:                "51",
+				lon:                "0",
 				expected:           []item{{"camera", location{51, 0}, "london/camera", []string{}}},
 				expectedStatusCode: http.StatusOK,
 			},
@@ -86,7 +92,8 @@ func TestIntegration(t *testing.T) {
 				httpMethod:         "GET",
 				endpoint:           "/search",
 				searchTerm:         "video cameras",
-				loc:                location{51, 0},
+				lat:                "51",
+				lon:                "0",
 				expected:           []item{{"camera", location{51, 0}, "london/camera", []string{}}},
 				expectedStatusCode: http.StatusOK,
 			},
@@ -117,7 +124,7 @@ func TestIntegration(t *testing.T) {
 				server = httptest.NewServer(http.HandlerFunc(newEndpointHandler(db).ServeHTTP))
 				client = http.Client{}
 				url    = fmt.Sprintf("%v%v?searchTerm=%v&lat=%v&lng=%v",
-					server.URL, tc.endpoint, url.PathEscape(tc.searchTerm), tc.loc.Lat, tc.loc.Lon)
+					server.URL, tc.endpoint, url.PathEscape(tc.searchTerm), tc.lat, tc.lon)
 				req, _ = http.NewRequest(tc.httpMethod, url, nil)
 			)
 			defer server.Close()
