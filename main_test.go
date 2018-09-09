@@ -119,6 +119,17 @@ func TestIntegration(t *testing.T) {
 				expected:           []item{{"camera", location{51, 0}, "london/camera", []string{}}},
 				expectedStatusCode: http.StatusOK,
 			},
+			{
+				name:               "singular version of search term is in url",
+				items:              `"nikon",51,0,london/camera,[]`,
+				httpMethod:         "GET",
+				endpoint:           "/search",
+				searchTerm:         "cameras",
+				lat:                "51",
+				lon:                "0",
+				expected:           []item{{"nikon", location{51, 0}, "london/camera", []string{}}},
+				expectedStatusCode: http.StatusOK,
+			},
 		}
 	)
 	if err != nil {

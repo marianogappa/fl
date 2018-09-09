@@ -22,9 +22,9 @@ type location struct {
 }
 
 type item struct {
-	ItemName string   `json:"itemName"`
-	Location location `json:"location"`
-	ItemURL  string   `json:"itemURL"`
+	ItemName string   `json:"itemName"` // Chose to kept the sqlite schema names untouched
+	Location location `json:"location"` // Usually, in non-greenfield one doesn't get to change the schemas
+	ItemURL  string   `json:"itemURL"`  // Having said that, an `item` should have a `name`, not an `itemName`
 	ImgURLs  []string `json:"imgURLs"`
 	// Score    float64  `json:"_score"`
 }
@@ -141,7 +141,7 @@ func (db db) search(searchTerm string, loc location) ([]item, error) {
 		items = make([]item, 0)
 		q     = elastic.NewFunctionScoreQuery()
 	)
-	q.Query(elastic.NewMatchQuery("itemName", searchTerm).Analyzer("english"))
+	q.Query(elastic.NewMultiMatchQuery(searchTerm, "itemName", "itemURL").Analyzer("english"))
 	q.AddScoreFunc(elastic.NewGaussDecayFunction().FieldName("location").Origin(loc).Offset("2km").Scale("3km"))
 
 	searchResult, err := db.client.Search().Index(db.index).Query(q).From(0).Size(20).Do(context.Background())
