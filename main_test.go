@@ -51,6 +51,16 @@ func TestIntegration(t *testing.T) {
 				expectedStatusCode: http.StatusNotFound,
 			},
 			{
+				name:               "empty search term returns Bad Request",
+				items:              `"camera",51,0,london/camera,[]`,
+				httpMethod:         "GET",
+				endpoint:           "/search",
+				searchTerm:         "",
+				loc:                location{51, 0},
+				expected:           []item{},
+				expectedStatusCode: http.StatusBadRequest,
+			},
+			{
 				name:               "happy case",
 				items:              `"camera",51,0,london/camera,[]`,
 				httpMethod:         "GET",

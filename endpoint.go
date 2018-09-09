@@ -25,6 +25,10 @@ func (eh endpointHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	var err error
 	searchTerm := r.URL.Query().Get("searchTerm")
+	if searchTerm == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	lat, err := strconv.ParseFloat(r.URL.Query().Get("lat"), 64)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
