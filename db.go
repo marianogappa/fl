@@ -26,7 +26,6 @@ type item struct {
 	Location location `json:"location"`
 	URL      string   `json:"url"`
 	ImgURLs  []string `json:"img_urls"`
-	// Score    float64  `json:"_score"`
 }
 
 const mapping = `
@@ -173,7 +172,6 @@ func (db db) search(searchTerm string, loc location) ([]item, error) {
 			log.Println(err)
 			return items, err
 		}
-		// it.Score = *hit.Score
 		items = append(items, it)
 	}
 
