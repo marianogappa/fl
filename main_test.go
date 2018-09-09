@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"reflect"
 	"strings"
 	"testing"
@@ -58,6 +59,26 @@ func TestIntegration(t *testing.T) {
 				expected:           []item{{"camera", location{51, 0}, "london/camera", []string{}}},
 				expectedStatusCode: http.StatusOK,
 			},
+			{
+				name:               "plural match",
+				items:              `"camera",51,0,london/camera,[]`,
+				httpMethod:         "GET",
+				endpoint:           "/search",
+				searchTerm:         "cameras",
+				loc:                location{51, 0},
+				expected:           []item{{"camera", location{51, 0}, "london/camera", []string{}}},
+				expectedStatusCode: http.StatusOK,
+			},
+			{
+				name:               "many words, one is similar match",
+				items:              `"camera",51,0,london/camera,[]`,
+				httpMethod:         "GET",
+				endpoint:           "/search",
+				searchTerm:         "video cameras",
+				loc:                location{51, 0},
+				expected:           []item{{"camera", location{51, 0}, "london/camera", []string{}}},
+				expectedStatusCode: http.StatusOK,
+			},
 		}
 	)
 	if err != nil {
@@ -86,7 +107,7 @@ func TestIntegration(t *testing.T) {
 				server = httptest.NewServer(http.HandlerFunc(newEndpointHandler(db).ServeHTTP))
 				client = http.Client{}
 				url    = fmt.Sprintf("%v%v?searchTerm=%v&lat=%v&lng=%v",
-					server.URL, tc.endpoint, tc.searchTerm, tc.loc.Lat, tc.loc.Lon)
+					server.URL, tc.endpoint, url.PathEscape(tc.searchTerm), tc.loc.Lat, tc.loc.Lon)
 				req, _ = http.NewRequest(tc.httpMethod, url, nil)
 			)
 			defer server.Close()

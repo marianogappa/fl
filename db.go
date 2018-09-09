@@ -35,13 +35,15 @@ const mapping = `
 		"item":{
 			"properties":{
 				"name":{
-					"type":"text"
+					"type":"text",
+					"analyzer": "english"
 				},
 				"location":{
 					"type":"geo_point"
 				},
 				"url":{
-					"type":"text"
+					"type":"text",
+					"analyzer": "english"
 				},
 				"img_urls":{
 					"type":"object"
@@ -131,7 +133,7 @@ func (db db) put(items []item) error {
 func (db db) search(searchTerm string, loc location) ([]item, error) {
 	var items = make([]item, 0)
 	q := elastic.NewFunctionScoreQuery()
-	q.Query(elastic.NewQueryStringQuery(searchTerm).Field("itemName").Field("itemURL").Field("imgURLs"))
+	q.Query(elastic.NewMatchQuery("itemName", searchTerm).Analyzer("english"))
 	q.AddScoreFunc(elastic.NewGaussDecayFunction().FieldName("location").Origin(loc).Offset("2km").Scale("3km"))
 
 	searchResult, err := db.client.Search().Index(db.index).Query(q).From(0).Size(20).Do(context.Background())
