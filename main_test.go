@@ -198,6 +198,19 @@ func TestIntegration(t *testing.T) {
 				},
 				expectedStatusCode: http.StatusOK,
 			},
+			{
+				name:        "Score affects sorting but not matching; searchTerm match shows up even if really far",
+				useCSVItems: true,
+				httpMethod:  "GET",
+				endpoint:    "/search",
+				searchTerm:  "16694116", // <-- this number only appears in the url of a Camper Van in Aberdeen
+				lat:         "51.4",
+				lon:         "-0.1",
+				expected: []item{
+					{Name: "Camper Van 2012 VW T5 2.0 TDI ", Location: location{Lat: 57.5810623, Lon: -2.45002317}, URL: "aberdeen/hire-camper-van-2012-vw-t5-20-tdi--16694116", ImgURLs: []string{"camper-van-2012-vw-t5-20-tdi--42236441.jpg", "camper-van-2012-vw-t5-20-tdi--48876150.jpg", "camper-van-2012-vw-t5-20-tdi--22873682.jpg"}},
+				},
+				expectedStatusCode: http.StatusOK,
+			},
 		}
 	)
 	if err != nil {

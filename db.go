@@ -152,6 +152,7 @@ func (db db) search(searchTerm string, loc location) ([]item, error) {
 	// Parameters for the location based decay are set such that:
 	// - Items within 5km of specified location get perfect multiplier score (i.e. 1.0)
 	// - Items farther away than 5km will have decaying multiplier score, down to 0.5 when 15km away
+	// Note: this function affects sorting but not matching. Even if it's really far, we want it to show up.
 	q.AddScoreFunc(elastic.NewGaussDecayFunction().FieldName("location").Origin(loc).Offset("5km").Scale("10km"))
 
 	// By multiplying the 0 <= "geolocation decay" <= 1 by the searchTerm match score, we make the match less
