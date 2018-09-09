@@ -26,7 +26,3 @@ $ make run
 - Used this line to dump the sqlite db into a csv: `sqlite3 -csv fatlama.sqlite3 "SELECT * FROM items" > dump.csv`
 - I didn't use an ES cluster (i.e. only one replica) or load balancing for the µs, but both are designed for it
 - [Here's](example-kubernetes-deployment.yml) an example Kubernetes service/deploy for the µs with 5 replicas
-
-### TODO
-
-- TODO: search many fields: include urls in full-text search
