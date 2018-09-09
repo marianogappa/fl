@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -23,6 +24,7 @@ func TestIntegration(t *testing.T) {
 		ts      = []struct {
 			name               string
 			items              string
+			useCSVItems        bool
 			httpMethod         string
 			endpoint           string
 			searchTerm         string
@@ -139,49 +141,64 @@ func TestIntegration(t *testing.T) {
 	defer db.client.Stop()
 	for _, tc := range ts {
 		t.Run(tc.name, func(t *testing.T) {
-			var (
-				index      = "test_items_" + randomHash()
-				items, err = readCSV(strings.NewReader(tc.items))
-			)
-			db.index = index
-			if err != nil {
-				t.Errorf("couldn't read items: %v", err)
-				t.FailNow()
-			}
-			if err := db.replaceIndex(items); err != nil {
-				t.Errorf("couldn't replace index: %v", err)
-				t.FailNow()
-			}
+			db.index = "test_items_" + randomHash()
+			loadItemsIntoTestIndex(tc.items, tc.useCSVItems, db, t)
 			defer db.deleteIndex()
-			var (
-				server = httptest.NewServer(http.HandlerFunc(newEndpointHandler(db).ServeHTTP))
-				client = http.Client{}
-				url    = fmt.Sprintf("%v%v?searchTerm=%v&lat=%v&lng=%v",
-					server.URL, tc.endpoint, url.PathEscape(tc.searchTerm), tc.lat, tc.lon)
-				req, _ = http.NewRequest(tc.httpMethod, url, nil)
-			)
-			defer server.Close()
-			res, err := client.Do(req)
-			if err != nil {
-				t.Errorf("couldn't request: %v", err)
+			actualItems, actualStatusCode := testRequest(tc.httpMethod, tc.endpoint, tc.searchTerm, tc.lat, tc.lon, db, t)
+			if tc.expectedStatusCode != actualStatusCode {
+				t.Errorf("expected status code %v but got %v", tc.expectedStatusCode, actualStatusCode)
 				t.FailNow()
 			}
-			if tc.expectedStatusCode != res.StatusCode {
-				t.Errorf("expected status code %v but got %v", tc.expectedStatusCode, res.StatusCode)
-			}
-			defer res.Body.Close()
-			if tc.expectedStatusCode != http.StatusOK {
-				return
-			}
-			var actual = make([]item, 0)
-			if err := json.NewDecoder(res.Body).Decode(&actual); err != nil {
-				t.Errorf("couldn't read response payload into items: %v", err)
-			}
-			if !reflect.DeepEqual(tc.expected, actual) {
-				t.Errorf("expected %v but got %v", tc.expected, actual)
+			if !reflect.DeepEqual(tc.expected, actualItems) {
+				t.Errorf("expected %v but got %v", tc.expected, actualItems)
 			}
 		})
 	}
+}
+
+func loadItemsIntoTestIndex(strItems string, useCSVItems bool, db db, t *testing.T) {
+	items, err := readCSV(strings.NewReader(strItems))
+	if useCSVItems {
+		var fh *os.File
+		fh, err = os.Open("dump.csv")
+		if err == nil {
+			items, err = readCSV(fh)
+		}
+	}
+	if err != nil {
+		t.Errorf("couldn't read items: %v", err)
+		t.FailNow()
+	}
+	if err := db.replaceIndex(items); err != nil {
+		t.Errorf("couldn't replace index: %v", err)
+		t.FailNow()
+	}
+}
+
+func testRequest(httpMethod, endpoint, searchTerm, lat, lon string, db db, t *testing.T) ([]item, int) {
+	var (
+		server = httptest.NewServer(http.HandlerFunc(newEndpointHandler(db).ServeHTTP))
+		client = http.Client{}
+		url    = fmt.Sprintf("%v%v?searchTerm=%v&lat=%v&lng=%v",
+			server.URL, endpoint, url.PathEscape(searchTerm), lat, lon)
+		req, _ = http.NewRequest(httpMethod, url, nil)
+	)
+	defer server.Close()
+	res, err := client.Do(req)
+	if err != nil {
+		t.Errorf("couldn't request: %v", err)
+		t.FailNow()
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return []item{}, res.StatusCode
+	}
+	var actualItems = make([]item, 0)
+	if err := json.NewDecoder(res.Body).Decode(&actualItems); err != nil {
+		t.Errorf("couldn't read response payload into items: %v", err)
+		t.FailNow()
+	}
+	return actualItems, res.StatusCode
 }
 
 func (db db) deleteIndex() {
