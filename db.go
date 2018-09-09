@@ -142,13 +142,20 @@ func (db db) search(searchTerm string, loc location) ([]item, error) {
 		items = make([]item, 0)
 		q     = elastic.NewFunctionScoreQuery()
 	)
-	// Search for searchTerm in all text fields
+	// Full-text search for searchTerm in all text fields
+	// Elasticsearch will assign a score to the match based on:
+	// - If the searchTerm appears in each document (i.e. each item) (>exact match => >score)
+	// - How popular the searchTerm is in all documents (>popular => <score)
+	// - Length of the searchTerm proportional to the length of document overall text (>percentage => >score)
 	q.Query(elastic.NewMultiMatchQuery(searchTerm, "name", "url", "img_urls"))
 
-	// Gauss is a gaussian-bell-curve decay function with 0 <= score <= 1
-	q.AddScoreFunc(elastic.NewGaussDecayFunction().FieldName("location").Origin(loc).Offset("2km").Scale("3km"))
+	// GaussDecayFunction is a gaussian-bell-curve decay function with 0 <= score <= 1
+	// Parameters for the location based decay are set such that:
+	// - Items within 5km of specified location get perfect multiplier score (i.e. 1.0)
+	// - Items farther away than 5km will have decaying multiplier score, down to 0.5 when 15km away
+	q.AddScoreFunc(elastic.NewGaussDecayFunction().FieldName("location").Origin(loc).Offset("5km").Scale("10km"))
 
-	// By multiplying the 0 <= "geolocation decay" <= 1 by the searchTerm match, we make the match less
+	// By multiplying the 0 <= "geolocation decay" <= 1 by the searchTerm match score, we make the match less
 	// relevant as it moves away from the specified location, following a gaussian bell curve
 	q.ScoreMode("multiply") // Illustrative as it's the default
 

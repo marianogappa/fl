@@ -20,6 +20,7 @@ $ make run
 - Elasticsearch cluster: high availability and horizontal scaling as data grows and request volume grows
 - Go µs endpoint is stateless: n load balanced replicas for high availability and horizontal scaling
 - Testing: integration tests as there is nothing to test other than ES query + endpoint contract
+- Please refer to [db.go](db.go)'s search function for a detailed explanation of how results are chosen and sorted
 
 ### Caveats/Disclaimers
 
