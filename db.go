@@ -127,6 +127,9 @@ func (db db) put(items []item) error {
 	if bulkResponse != nil && bulkResponse.Errors {
 		return fmt.Errorf("db: bulk insert had errors")
 	}
+	if _, err := db.client.Refresh(db.index).Do(context.Background()); err != nil { // force instantly searchable
+		return err
+	}
 	return nil
 }
 

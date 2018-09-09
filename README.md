@@ -27,6 +27,5 @@ $ make run
 
 ### TODO
 
-- TODO: happy test fails because of flaky ES
 - TODO: unit test readCSV?
 - TODO: search many fields: include urls in full-text search

@@ -13,7 +13,6 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-	"time"
 )
 
 func TestIntegration(t *testing.T) {
@@ -101,7 +100,6 @@ func TestIntegration(t *testing.T) {
 				t.Errorf("couldn't replace index: %v", err)
 				t.FailNow()
 			}
-			time.Sleep(1 * time.Second) // TODO: unfortunately ES is flaky by default :(
 			defer db.deleteIndex()
 			var (
 				server = httptest.NewServer(http.HandlerFunc(newEndpointHandler(db).ServeHTTP))
