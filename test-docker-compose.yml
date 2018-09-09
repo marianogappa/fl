@@ -1,0 +1,29 @@
+version: '3'
+services:
+  test:
+    image: golang:1.10
+    volumes:
+      - "$PWD:/go/src/fl"
+    network_mode: host
+    working_dir: /go/src/fl
+    depends_on:
+      - elasticsearch
+    entrypoint: go test -v .
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.4.0
+    container_name: elasticsearch
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 9200:9200
+    networks:
+      - esnet
+
+networks:
+  esnet:

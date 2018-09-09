@@ -4,4 +4,4 @@ run:
 	docker-compose up
 
 test:
-	go test -v .
+	docker-compose --file test-docker-compose.yml up --abort-on-container-exit
