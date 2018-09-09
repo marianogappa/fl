@@ -52,7 +52,7 @@ func readCSV(rd io.Reader) ([]item, error) {
 		}
 
 		items = append(items,
-			item{ItemName: itemName, Location: location{Lat: lat, Lon: lng}, ItemURL: itemURL, ImgURLs: imgURLs},
+			item{Name: itemName, Location: location{Lat: lat, Lon: lng}, URL: itemURL, ImgURLs: imgURLs},
 		)
 	}
 	return items, nil
