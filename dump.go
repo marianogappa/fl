@@ -11,9 +11,9 @@ import (
 )
 
 func mustReadCSVFromFile(path string) []item {
-	fh, err := os.Open("dump.csv")
+	fh, err := os.Open(path)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("mustReadCSVFromFile: error opening file: %v", err)
 	}
 	items, err := readCSV(fh)
 	if err != nil {
@@ -31,24 +31,24 @@ func readCSV(rd io.Reader) ([]item, error) {
 			break
 		}
 		if err != nil {
-			return items, err
+			return items, fmt.Errorf("readCSV: error reading record: %v", err)
 		}
 		if len(row) != 5 {
-			return items, fmt.Errorf("Row didn't have 5 columns: %v", row)
+			return items, fmt.Errorf("readCSV: row didn't have 5 columns: %v", row)
 		}
 		itemName := row[0]
 		lat, err := strconv.ParseFloat(row[1], 64)
 		if err != nil {
-			return items, fmt.Errorf("%v (%v)", err, row[1])
+			return items, fmt.Errorf("readCSV: error parsing %v as float: %v", row[1], err)
 		}
 		lng, err := strconv.ParseFloat(row[2], 64)
 		if err != nil {
-			return items, fmt.Errorf("%v (%v)", err, row[2])
+			return items, fmt.Errorf("readCSV: error parsing %v as float: %v", row[2], err)
 		}
 		itemURL := row[3]
 		imgURLs := make([]string, 0)
 		if err := json.Unmarshal([]byte(row[4]), &imgURLs); err != nil {
-			return items, fmt.Errorf("%v (%v)", err, row[4])
+			return items, fmt.Errorf("readCSV: error parsing %v as []string: %v", row[4], err)
 		}
 
 		items = append(items,

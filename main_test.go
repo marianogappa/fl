@@ -15,6 +15,8 @@ import (
 	"testing"
 )
 
+// Integration test creates a new index for every subtest.
+// Tests by making HTTP requests and expecting a response status code and payload.
 func TestIntegration(t *testing.T) {
 	var (
 		db, err = newDB("http://elasticsearch:9200", "elastic", "changeme", "")
