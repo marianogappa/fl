@@ -1,9 +1,6 @@
 FROM alpine:latest
 
-RUN apk add --update ca-certificates && \
-    rm -rf /var/cache/apk/* /tmp/*
-RUN update-ca-certificates
-
 ADD go-app /go-app
+ADD dump.csv /dump.csv
 
 ENTRYPOINT ["/go-app"]
