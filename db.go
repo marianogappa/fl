@@ -142,10 +142,17 @@ func (db db) search(searchTerm string, loc location) ([]item, error) {
 		items = make([]item, 0)
 		q     = elastic.NewFunctionScoreQuery()
 	)
+	// Search for searchTerm in all text fields
 	q.Query(elastic.NewMultiMatchQuery(searchTerm, "name", "url", "img_urls"))
+
+	// Gauss is a gaussian-bell-curve decay function with 0 <= score <= 1
 	q.AddScoreFunc(elastic.NewGaussDecayFunction().FieldName("location").Origin(loc).Offset("2km").Scale("3km"))
 
-	searchResult, err := db.client.Search().Index(db.index).Query(q).From(0).Size(20).Do(context.Background())
+	// By multiplying the 0 <= "geolocation decay" <= 1 by the searchTerm match, we make the match less
+	// relevant as it moves away from the specified location, following a gaussian bell curve
+	q.ScoreMode("multiply") // Illustrative as it's the default
+
+	searchResult, err := db.client.Search().Index(db.index).Query(q).Size(20).Do(context.Background())
 	if err != nil {
 		err = fmt.Errorf("search: error executing search query: %v", err)
 		log.Println(err)
