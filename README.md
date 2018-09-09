@@ -27,7 +27,7 @@ $ make run
 
 ### TODO
 
-- TODO: use docker-compose for run and for tests completely
+- TODO: use docker-compose for run
 - TODO: happy test fails because of flaky ES
 - TODO: unit test readCSV?
 - TODO: includes urls in full-text search
