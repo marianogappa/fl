@@ -18,7 +18,7 @@ import (
 
 func TestIntegration(t *testing.T) {
 	var (
-		db, err = newDB("http://127.0.0.1:9200", "elastic", "changeme", "")
+		db, err = newDB("http://elasticsearch:9200", "elastic", "changeme", "")
 		ts      = []struct {
 			name               string
 			items              string

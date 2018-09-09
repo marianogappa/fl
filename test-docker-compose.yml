@@ -4,7 +4,6 @@ services:
     image: golang:1.10
     volumes:
       - "$PWD:/go/src/fl"
-    network_mode: host
     working_dir: /go/src/fl
     depends_on:
       - elasticsearch
@@ -22,8 +21,3 @@ services:
         hard: -1
     ports:
       - 9200:9200
-    networks:
-      - esnet
-
-networks:
-  esnet:
