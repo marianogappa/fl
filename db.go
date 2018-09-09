@@ -46,7 +46,8 @@ const mapping = `
 					"analyzer": "english"
 				},
 				"img_urls":{
-					"type":"object"
+					"type":"text",
+					"analyzer": "english"
 				}
 			}
 		}
@@ -141,7 +142,7 @@ func (db db) search(searchTerm string, loc location) ([]item, error) {
 		items = make([]item, 0)
 		q     = elastic.NewFunctionScoreQuery()
 	)
-	q.Query(elastic.NewMultiMatchQuery(searchTerm, "name", "url"))
+	q.Query(elastic.NewMultiMatchQuery(searchTerm, "name", "url", "img_urls"))
 	q.AddScoreFunc(elastic.NewGaussDecayFunction().FieldName("location").Origin(loc).Offset("2km").Scale("3km"))
 
 	searchResult, err := db.client.Search().Index(db.index).Query(q).From(0).Size(20).Do(context.Background())
